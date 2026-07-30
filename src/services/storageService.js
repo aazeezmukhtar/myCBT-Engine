@@ -99,14 +99,9 @@ const setStorageItem = async (key, data) => {
 // Initialization
 export const initStorage = async () => {
   if (isSupabaseEnabled) {
-    const { data: stData } = await supabase.from('students').select('id').limit(1);
+    const { data: stData } = await supabase.from('settings').select('id').limit(1);
     if (!stData || stData.length === 0) {
-      await setStorageItem(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS);
       await setStorageItem(STORAGE_KEYS.SUBJECTS, SUBJECTS_AND_TOPICS);
-      await setStorageItem(STORAGE_KEYS.QUESTIONS, INITIAL_QUESTIONS);
-      await setStorageItem(STORAGE_KEYS.ASSESSMENTS, INITIAL_ASSESSMENTS);
-      await setStorageItem(STORAGE_KEYS.ATTEMPTS, INITIAL_ATTEMPTS);
-      await setStorageItem(STORAGE_KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS);
       await setStorageItem(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
       await setStorageItem(STORAGE_KEYS.LOGS, [
         { id: "LOG-001", action: "System Initialized", details: "Default seed data loaded into platform storage.", timestamp: new Date().toISOString(), userName: "System" }
@@ -143,7 +138,7 @@ export const initStorage = async () => {
 };
 
 // Students API
-export const getStudents = async () => getStorageItem(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS);
+export const getStudents = async () => getStorageItem(STORAGE_KEYS.STUDENTS, isSupabaseEnabled ? [] : INITIAL_STUDENTS);
 export const saveStudents = async (students) => setStorageItem(STORAGE_KEYS.STUDENTS, students);
 export const addStudent = async (student) => {
   const current = await getStudents();
@@ -159,7 +154,7 @@ export const updateStudent = async (id, updatedData) => {
 };
 
 // Question Bank API
-export const getQuestions = async () => getStorageItem(STORAGE_KEYS.QUESTIONS, INITIAL_QUESTIONS);
+export const getQuestions = async () => getStorageItem(STORAGE_KEYS.QUESTIONS, isSupabaseEnabled ? [] : INITIAL_QUESTIONS);
 export const saveQuestions = async (questions) => setStorageItem(STORAGE_KEYS.QUESTIONS, questions);
 export const addQuestionsBatch = async (newQuestions) => {
   const current = await getQuestions();
@@ -169,11 +164,11 @@ export const addQuestionsBatch = async (newQuestions) => {
 };
 
 // Subjects API
-export const getSubjects = async () => getStorageItem(STORAGE_KEYS.SUBJECTS, SUBJECTS_AND_TOPICS);
+export const getSubjects = async () => getStorageItem(STORAGE_KEYS.SUBJECTS, isSupabaseEnabled ? [] : SUBJECTS_AND_TOPICS);
 export const saveSubjects = async (subjects) => setStorageItem(STORAGE_KEYS.SUBJECTS, subjects);
 
 // Assessments API
-export const getAssessments = async () => getStorageItem(STORAGE_KEYS.ASSESSMENTS, INITIAL_ASSESSMENTS);
+export const getAssessments = async () => getStorageItem(STORAGE_KEYS.ASSESSMENTS, isSupabaseEnabled ? [] : INITIAL_ASSESSMENTS);
 export const saveAssessments = async (assessments) => setStorageItem(STORAGE_KEYS.ASSESSMENTS, assessments);
 export const addAssessment = async (assessment) => {
   const current = await getAssessments();
@@ -189,7 +184,7 @@ export const updateAssessment = async (id, updatedData) => {
 };
 
 // Attempts API
-export const getAttempts = async () => getStorageItem(STORAGE_KEYS.ATTEMPTS, INITIAL_ATTEMPTS);
+export const getAttempts = async () => getStorageItem(STORAGE_KEYS.ATTEMPTS, isSupabaseEnabled ? [] : INITIAL_ATTEMPTS);
 export const saveAttempt = async (newAttempt) => {
   const current = await getAttempts();
   const updated = [newAttempt, ...current];
@@ -198,7 +193,7 @@ export const saveAttempt = async (newAttempt) => {
 };
 
 // Notifications API
-export const getNotifications = async () => getStorageItem(STORAGE_KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS);
+export const getNotifications = async () => getStorageItem(STORAGE_KEYS.NOTIFICATIONS, isSupabaseEnabled ? [] : INITIAL_NOTIFICATIONS);
 export const markNotificationRead = async (id) => {
   const current = await getNotifications();
   const updated = current.map(n => n.id === id ? { ...n, read: true } : n);
@@ -230,12 +225,8 @@ export const logActivity = async (action, details, user = "System") => {
 // Reset System Data
 export const resetToDefaults = async () => {
   if (isSupabaseEnabled) {
-    await setStorageItem(STORAGE_KEYS.STUDENTS, INITIAL_STUDENTS);
+    // Don't reset everything to dummy data in production
     await setStorageItem(STORAGE_KEYS.SUBJECTS, SUBJECTS_AND_TOPICS);
-    await setStorageItem(STORAGE_KEYS.QUESTIONS, INITIAL_QUESTIONS);
-    await setStorageItem(STORAGE_KEYS.ASSESSMENTS, INITIAL_ASSESSMENTS);
-    await setStorageItem(STORAGE_KEYS.ATTEMPTS, INITIAL_ATTEMPTS);
-    await setStorageItem(STORAGE_KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS);
     await setStorageItem(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
     await setStorageItem(STORAGE_KEYS.LOGS, []);
   } else {
