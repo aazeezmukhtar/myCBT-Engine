@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS students (
 CREATE TABLE IF NOT EXISTS subjects (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  description TEXT,
+  code TEXT,
   topics TEXT[]
 );
 
