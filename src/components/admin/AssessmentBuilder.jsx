@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { BookOpen, Plus, Clock, Shuffle, CheckCircle, AlertCircle, Trash2, Edit2, Play, Users } from 'lucide-react';
-import { addAssessment, updateAssessment, saveAssessments } from '../../services/storageService';
+import { addAssessment, updateAssessment, saveAssessments, getStudents } from '../../services/storageService';
 
 export const AssessmentBuilder = ({ assessments, subjects, questions, onRefresh }) => {
   const [showModal, setShowModal] = useState(false);
   const [editingAssessment, setEditingAssessment] = useState(null);
 
-  // Form State
+  const [students, setStudents] = useState([]);
+  const [classOptions, setClassOptions] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     type: 'Examination',
     subject: subjects[0]?.name || 'Mathematics',
-    targetClass: 'SS 3 Alpha',
+    targetClass: '',
     startDate: '2026-07-01T08:00',
     dueDate: '2026-08-30T23:59',
     durationMinutes: 30,
@@ -25,8 +26,30 @@ export const AssessmentBuilder = ({ assessments, subjects, questions, onRefresh 
 
   const [formError, setFormError] = useState('');
 
-  // Questions available for selected subject
-  const subjectQuestions = questions.filter(q => q.subject === formData.subject);
+  // Load students and class options on mount
+  React.useEffect(() => {
+    async function loadStudents() {
+      try {
+        const data = await getStudents();
+        setStudents(data);
+        // classOptions will be set by the effect below when students change
+      } catch (err) {
+        console.error('Failed to load students', err);
+      }
+    }
+    loadStudents();
+  }, []);
+
+  // Update class options whenever students list changes
+  React.useEffect(() => {
+    const classes = Array.from(new Set(students.map(s => s.class))).filter(Boolean);
+    setClassOptions(classes);
+    // Ensure the selected target class is valid
+    if (!classes.includes(formData.targetClass) && classes.length > 0) {
+      setFormData(prev => ({ ...prev, targetClass: classes[0] }));
+    }
+  }, [students]);
+
 
   const handleToggleQuestionSelect = (qId) => {
     setFormData(prev => {
@@ -240,12 +263,18 @@ export const AssessmentBuilder = ({ assessments, subjects, questions, onRefresh 
 
                   <div className="form-group">
                     <label className="form-label">Target Class</label>
-                    <input
-                      type="text"
-                      className="form-input"
+                    <select
+                      className="form-select"
                       value={formData.targetClass}
                       onChange={(e) => setFormData({ ...formData, targetClass: e.target.value })}
-                    />
+                    >
+                      {classOptions.map(cls => (
+                        <option key={cls} value={cls}>{cls}</option>
+                      ))}
+                      {classOptions.length === 0 && (
+                        <option disabled value="">No classes available</option>
+                      )}
+                    </select>
                   </div>
                 </div>
 
