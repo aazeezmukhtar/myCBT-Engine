@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { BookOpen, Plus, Clock, Shuffle, CheckCircle, AlertCircle, Trash2, Edit2, Play, Users } from 'lucide-react';
 import { addAssessment, updateAssessment, saveAssessments, getStudents } from '../../services/storageService';
 
@@ -24,7 +24,7 @@ export const AssessmentBuilder = ({ assessments, subjects, questions, onRefresh 
     selectedQuestionIds: []
   });
 
-  const [formError, setFormError] = useState('');
+  const subjectQuestions = useMemo(() => questions.filter(q => q.subject === formData.subject), [questions, formData.subject]);
 
   // Load students and class options on mount
   React.useEffect(() => {
@@ -131,7 +131,7 @@ export const AssessmentBuilder = ({ assessments, subjects, questions, onRefresh 
             title: '',
             type: 'Examination',
             subject: subjects[0]?.name || 'Mathematics',
-            targetClass: 'SS 3 Alpha',
+            targetClass: '',
             startDate: '2026-07-01T08:00',
             dueDate: '2026-08-30T23:59',
             durationMinutes: 30,
@@ -140,7 +140,7 @@ export const AssessmentBuilder = ({ assessments, subjects, questions, onRefresh 
             randomizeOptions: true,
             showResultsImmediately: true,
             allowAnswerReview: true,
-            selectedQuestionIds: subjectQuestions.map(q => q.id)
+            selectedQuestionIds: (subjectQuestions && Array.isArray(subjectQuestions) ? subjectQuestions.map(q => q.id) : [])
           });
           setShowModal(true);
         }}>
@@ -249,11 +249,10 @@ export const AssessmentBuilder = ({ assessments, subjects, questions, onRefresh 
                       value={formData.subject}
                       onChange={(e) => {
                         const subj = e.target.value;
-                        const matchingQs = questions.filter(q => q.subject === subj);
                         setFormData({
                           ...formData,
                           subject: subj,
-                          selectedQuestionIds: matchingQs.map(q => q.id)
+                          selectedQuestionIds: []
                         });
                       }}
                     >
